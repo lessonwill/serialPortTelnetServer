@@ -12,7 +12,7 @@ This Serial Port Telnet Server program is designed to bridge serial port communi
 - **Configurable baud rate and Telnet port**
 - **Built-in logging of Telnet connections**
 - **Supports Windows. You can change easily to support other OS like Linux.**
-- 
+
 ## Prerequisites
 
 - Python 3.x
@@ -77,7 +77,7 @@ This project is licensed under the MIT License.
 - **支持动态选择COM端口**
 - **可配置的波特率和Telnet端口**
 - **内置的Telnet连接日志记录**
-- **当前支持windows。稍做变更即可支持其他系统如Linux。**
+- **当前支持windows。稍做变更即可支持其它系统如Linux。**
 
 
 ## 前提条件
