@@ -11,7 +11,7 @@ This Serial Port Telnet Server program is designed to bridge serial port communi
 - **Support for dynamic selection of COM ports**
 - **Configurable baud rate and Telnet port**
 - **Built-in logging of Telnet connections**
-- **Supports Windows. You can change easily to support other OS like Linux.**
+- **Supports Windows/Linux. Tested on Win10/Beagle Board Black (Debian buster).**
 
 ## Prerequisites
 
@@ -37,19 +37,23 @@ pip install -r requirements.txt
 
 ## Usage
 
-1. **Launch the program** by running `main.py`:
+1. **Launch the program** by running `serialServerCmd.py`:
 
     \```bash
-    python main.py
+    GUI mode:
+    python3 serialServerCmd.py
+    CMD mode:
+    python3 serialServerCmd.py --cli --com /dev/ttyUSB0 --baud 9600 --port 9001
     \```
+    The following steps only apply to GUI mode.
 
-2. The GUI will appear, allowing you to **select the COM port**, **set the baud rate**, and **specify the Telnet port**.
+3. The GUI will appear, allowing you to **select the COM port**, **set the baud rate**, and **specify the Telnet port**.
 
-3. **Click the "Connect" button** to start the Telnet server. The button will change to "Disconnect", indicating that the server is running.
+4. **Click the "Connect" button** to start the Telnet server. The button will change to "Disconnect", indicating that the server is running.
 
-4. **Connect to the server** using a Telnet client. The IP address will be displayed in the GUI.
+5. **Connect to the server** using a Telnet client. The IP address will be displayed in the GUI.
 
-5. **Click "Disconnect"** to stop the server.
+6. **Click "Disconnect"** to stop the server.
 
 ## Contributing
 
