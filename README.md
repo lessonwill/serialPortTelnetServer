@@ -25,26 +25,28 @@ This Serial Port Telnet Server program is designed to bridge serial port communi
 
 Clone the repository:
 
-\```bash
+```bash
 git clone https://github.com/yourusername/SerialPortTelnetServer.git
-\```
+```
 
 Install required packages:
 
-\```bash
+```bash
 pip install -r requirements.txt
-\```
+```
 
 ## Usage
 
 1. **Launch the program** by running `serialServerCmd.py`:
-
-    \```bash
+    
     GUI mode:
+    ```bash
     python3 serialServerCmd.py
+    ```
     CMD mode:
+    ```bash
     python3 serialServerCmd.py --cli --com /dev/ttyUSB0 --baud 9600 --port 9001
-    \```
+    ```
     The following steps only apply to GUI mode.
 
 3. The GUI will appear, allowing you to **select the COM port**, **set the baud rate**, and **specify the Telnet port**.
@@ -81,7 +83,7 @@ This project is licensed under the MIT License.
 - **支持动态选择COM端口**
 - **可配置的波特率和Telnet端口**
 - **内置的Telnet连接日志记录**
-- **当前支持windows。稍做变更即可支持其它系统如Linux。**
+- **支持Windows/Linux。 在WIN10和Beagle Board Black (Debian buster)上测试成功。**
 
 
 ## 前提条件
@@ -96,24 +98,29 @@ This project is licensed under the MIT License.
 
 克隆仓库：
 
-\```bash
+```bash
 git clone https://github.com/yourusername/SerialPortTelnetServer.git
-\```
+```
 
 安装所需的包：
 
-\```bash
+```bash
 pip install -r requirements.txt
-\```
+```
 
 ## 使用说明
 
-1. **运行`main.py`以启动程序**：
-
-    \```bash
-    python main.py
-    \```
-
+1. **运行`serialServerCmd.py`以启动程序**：
+  
+    GUI 模式:
+    ```bash
+    python3 serialServerCmd.py
+    ```
+    命令行模式:
+    ```bash
+    python3 serialServerCmd.py --cli --com /dev/ttyUSB0 --baud 9600 --port 9001
+    ```
+    下面的步骤仅对GUI模式适用。
 2. 图形界面将出现，允许您**选择COM端口**，**设置波特率**，以及**指定Telnet端口**。
 
 3. **点击“连接”按钮**以启动Telnet服务器。按钮将变为“断开”，表示服务器正在运行。
@@ -134,4 +141,3 @@ pip install -r requirements.txt
 
 - `asyncio`库用于异步I/O。
 - `serial_asyncio`库用于串口通信。
-
