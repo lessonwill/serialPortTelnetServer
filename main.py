@@ -3,6 +3,9 @@ import serial_asyncio
 from asyncio import StreamReader, StreamWriter
 import psutil
 import socket
+import argparse
+import os
+import platform
 
 # Telnet commands
 IAC = b'\xff'
@@ -18,10 +21,15 @@ telnet_handshake =  IAC + WILL + SGA + IAC + WILL + ECHO + IAC + WILL + BINARY
 clients = []  # List to keep track of connected clients
 
 def find_first_ip():
-    for interface, addrs in psutil.net_if_addrs().items():
-        for addr in addrs:
-            if addr.family == socket.AF_INET:
-                return addr.address
+    if platform.system() == 'Linux':
+        # 获取 IP 地址的 Linux 版本代码
+        return None
+    elif platform.system() == 'Windows':
+        # Windows 版本的代码
+        for interface, addrs in psutil.net_if_addrs().items():
+            for addr in addrs:
+                if addr.family == socket.AF_INET:
+                    return addr.address
     return None
 
 class SerialToTelnetProtocol(asyncio.Protocol):
@@ -113,84 +121,97 @@ import serial
 import serial.tools.list_ports
 import threading
 
-# Initialize the global variables
-com_ports = []
-baud_rate = 9600
-telnet_port = 9001
-loop = None
+class TelnetServerApp:
+    def __init__(self, master):
+        self.server = None
+        self.read_serial_task = None
+        self.serial_transport = None
 
-# Function to populate the COM port dropdown
-def populate_com_ports():
-    global com_ports
-    com_ports = [port.device for port in serial.tools.list_ports.comports()]
-    com_port_dropdown['values'] = com_ports
-    if com_ports:
-        com_port_dropdown.current(0)
+        self.master = master
+        self.master.title("Telnet Server")
 
-# Function to update the global baud rate and Telnet port
-def update_baud_rate_and_port():
-    global baud_rate, telnet_port
-    try:
-        baud_rate = int(baud_rate_entry.get())
-        telnet_port = int(port_entry.get())
-    except ValueError:
-        print("Invalid input. Using default values for baud rate (9600) and Telnet port (9001).")
+        frame = ttk.Frame(self.master, padding="10")
+        frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-bConnected = False
-# Function called when the "Connect" or "Disconnect" button is clicked
-def on_connect_disconnect():
-    global bConnected
-    if not bConnected:
-        update_baud_rate_and_port()
-        selected_port = com_port_dropdown.get()
-        if not selected_port:
-            print("No COM port selected.")
-            return
-        asyncio.run_coroutine_threadsafe(start_telnet_server(selected_port, baud_rate, telnet_port), loop)
-        connect_button.config(text="Disconnect")
-        bConnected = True
+        # COM port dropdown
+        ttk.Label(frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W)
+        self.com_port_dropdown = ttk.Combobox(frame)
+        self.com_port_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
+        self.populate_com_ports()
+
+        # Baud rate entry
+        ttk.Label(frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W)
+        self.baud_rate_entry = ttk.Entry(frame)
+        self.baud_rate_entry.grid(row=1, column=1, sticky=(tk.W, tk.E))
+        self.baud_rate_entry.insert(0, "9600")
+
+        # Telnet port entry
+        ttk.Label(frame, text="Telnet Port:").grid(row=2, column=0, sticky=tk.W)
+        self.port_entry = ttk.Entry(frame)
+        self.port_entry.grid(row=2, column=1, sticky=(tk.W, tk.E))
+        self.port_entry.insert(0, "9001")
+
+        # Connect button
+        self.connect_button = ttk.Button(frame, text="Connect", command=self.on_connect_disconnect)
+        self.connect_button.grid(row=3, columnspan=2)
+
+        self.bConnected = False
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+
+    # Function to populate the COM port dropdown
+    def populate_com_ports(self):
+        com_ports = [port.device for port in serial.tools.list_ports.comports()]
+        self.com_port_dropdown['values'] = com_ports
+        if com_ports:
+            self.com_port_dropdown.current(0)
+
+    # Function to update the global baud rate and Telnet port
+    def update_baud_rate_and_port(self):
+        try:
+            self.baud_rate = int(self.baud_rate_entry.get())
+            self.telnet_port = int(self.port_entry.get())
+        except ValueError:
+            print("Invalid input. Using default values for baud rate (9600) and Telnet port (9001).")
+
+    def on_connect_disconnect(self):
+        if not self.bConnected:
+            self.update_baud_rate_and_port()
+            selected_port = self.com_port_dropdown.get()
+            if not selected_port:
+                print("No COM port selected.")
+                return
+            asyncio.run_coroutine_threadsafe(start_telnet_server(selected_port, self.baud_rate, self.telnet_port), self.loop)
+            self.connect_button.config(text="Disconnect")
+            self.bConnected = True
+        else:
+            asyncio.run_coroutine_threadsafe(stop_telnet_server(), self.loop)
+            self.connect_button.config(text="Connect")
+            self.bConnected = False
+
+def run_event_loop(app):
+    app.loop.run_forever()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Start a Telnet server.')
+    # ... (其它的命令行参数，如 --com, --baud, --port)
+    parser.add_argument('--cli', action='store_true', help='Run in CLI mode without GUI')
+    parser.add_argument('--com', type=str, help='COM port (e.g., COM1)')
+    parser.add_argument('--baud', type=int, help='Baud rate (e.g., 9600)')
+    parser.add_argument('--port', type=int, help='Telnet port (e.g., 9001)')
+    args = parser.parse_args()
+
+    if args.cli:
+        # CLI模式下的代码
+        if args.com and args.baud and args.port:
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(start_telnet_server(args.com, args.baud, args.port))
+            loop.run_forever()
+        else:
+            print("In CLI mode, you must specify --com, --baud, and --port.")
     else:
-        asyncio.run_coroutine_threadsafe(stop_telnet_server(), loop)
-        connect_button.config(text="Connect")
-        bConnected = False
-
-# Create and configure the Tkinter window
-root = tk.Tk()
-root.title("Telnet Server")
-
-frame = ttk.Frame(root, padding="10")
-frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-
-# COM port dropdown
-ttk.Label(frame, text="COM Port:").grid(row=0, column=0, sticky=tk.W)
-com_port_dropdown = ttk.Combobox(frame)
-com_port_dropdown.grid(row=0, column=1, sticky=(tk.W, tk.E))
-populate_com_ports()
-
-# Baud rate entry
-ttk.Label(frame, text="Baud Rate:").grid(row=1, column=0, sticky=tk.W)
-baud_rate_entry = ttk.Entry(frame)
-baud_rate_entry.grid(row=1, column=1, sticky=(tk.W, tk.E))
-baud_rate_entry.insert(0, "9600")
-
-# Telnet port entry
-ttk.Label(frame, text="Telnet Port:").grid(row=2, column=0, sticky=tk.W)
-port_entry = ttk.Entry(frame)
-port_entry.grid(row=2, column=1, sticky=(tk.W, tk.E))
-port_entry.insert(0, "9001")
-
-# Connect button
-connect_button = ttk.Button(frame, text="Connect", command=on_connect_disconnect)
-connect_button.grid(row=3, columnspan=2)
-
-# Create a new event loop and run it in a separate thread
-def run_event_loop():
-    global loop
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
-
-thread = threading.Thread(target=run_event_loop)
-thread.start()
-
-root.mainloop()
+        root = tk.Tk()
+        app = TelnetServerApp(root)
+        thread = threading.Thread(target=run_event_loop, args=(app,))
+        thread.start()
+        root.mainloop()
